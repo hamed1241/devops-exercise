@@ -1,0 +1,53 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - docker-container-setup 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          pip install pipenv
+          pipenv install --deploy --dev
+
+      - name: Run tests
+        run: |
+          pipenv run pytest tests/unit
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t bw-devops-exercise .
+          echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+          docker push ghcr.io/${{ github.repository_owner }}/bw-devops-exercise
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/docker-container-setup'
+        run: |
+          VERSION=$(cat version.json | jq -r .baseVersion)
+          TAG_NAME="v$VERSION"
+          
+          if [[ $VERSION != *.*.* ]]; then
+            VERSION="${VERSION}.0"
+            echo "{\"baseVersion\": \"$VERSION\"}" > version.json
+            git add version.json
+            git commit -m "Reset patch version to 0"
+            git push origin docker-container-setup
+          fi
+          
+          gh release create "$TAG_NAME" --title "Release $TAG_NAME" --notes "Releasing $TAG_NAME" 
