@@ -34,8 +34,12 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/docker-container-setup'
         run: |
           echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u hamed1241 --password-stdin
-          docker buildx create --use
-          docker buildx build -t ghcr.io/hamed1241/devops-exercise/bw-devops-exercise --push .
+          docker build -t ghcr.io/hamed1241/devops-exercise/bw-devops-exercise .
+          docker push ghcr.io/hamed1241/devops-exercise/bw-devops-exercise
+      
+          # Build and push the latest tag
+          docker build -t ghcr.io/hamed1241/devops-exercise/bw-devops-exercise:latest .
+          docker push ghcr.io/hamed1241/devops-exercise/bw-devops-exercise:latest
 
       - name: Create GitHub Release
         if: github.event_name == 'push' && github.ref == 'refs/heads/docker-container-setup'
