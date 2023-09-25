@@ -44,6 +44,10 @@ jobs:
       - name: Create GitHub Release
         if: github.event_name == 'push' && github.ref == 'refs/heads/docker-container-setup'
         run: |
+
+          git config --global user.email "hamedsaghir9@gmail.com"
+          git config --global user.name "Hamed Saghir"
+
           VERSION=$(cat version.json | jq -r .baseVersion)
           TAG_NAME="v$VERSION"
           
