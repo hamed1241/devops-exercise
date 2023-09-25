@@ -31,6 +31,7 @@ jobs:
           pipenv run pytest tests/unit
 
       - name: Build and push Docker image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/docker-container-setup'
         run: |
           echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u hamed1241 --password-stdin
           docker buildx create --use
