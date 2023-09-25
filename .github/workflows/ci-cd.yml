@@ -32,8 +32,9 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "hamed1241" --password-stdin
-          docker build -t ghcr.io/hamed1241/devops-exercise/bw-devops-exercise 
+          echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u hamed1241 --password-stdin
+          docker buildx create --use
+          docker buildx build -t ghcr.io/hamed1241/devops-exercise/bw-devops-exercise .
           docker push ghcr.io/hamed1241/devops-exercise/bw-devops-exercise
 
       - name: Create GitHub Release
@@ -51,8 +52,3 @@ jobs:
           fi
           
           gh release create "$TAG_NAME" --title "Release $TAG_NAME" --notes "Releasing $TAG_NAME" 
-
-
-          echo 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 | docker login ghcr.io -u hamed1241 --password-stdin
-          docker build -t ghcr.io/hamed1241/devops-exercise/bw-devops-exercise:latest .
-          docker push ghcr.io/hamed1241/devops-exercise/bw-devops-exercise:latest
