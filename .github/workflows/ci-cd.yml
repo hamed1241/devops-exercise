@@ -43,6 +43,8 @@ jobs:
 
       - name: Create GitHub Release
         if: github.event_name == 'push' && github.ref == 'refs/heads/docker-container-setup'
+        env:
+            GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
 
           git config --global user.email "hamedsaghir9@gmail.com"
