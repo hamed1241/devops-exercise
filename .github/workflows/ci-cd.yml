@@ -32,8 +32,8 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
-          docker build -t ghcr.io/${{ github.repository_owner }}/devops-exercise/bw-devops-exercise 
+          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker build -t ghcr.io/${{ github.repository_owner }}/devops-exercise/bw-devops-exercise .
           docker push ghcr.io/${{ github.repository_owner }}/devops-exercise/bw-devops-exercise
 
       - name: Create GitHub Release
