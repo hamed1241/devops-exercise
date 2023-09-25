@@ -35,8 +35,7 @@ jobs:
         run: |
           echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u hamed1241 --password-stdin
           docker buildx create --use
-          docker buildx build -t ghcr.io/hamed1241/devops-exercise/bw-devops-exercise .
-          docker push ghcr.io/hamed1241/devops-exercise/bw-devops-exercise
+          docker buildx build -t ghcr.io/hamed1241/devops-exercise/bw-devops-exercise --push .
 
       - name: Create GitHub Release
         if: github.event_name == 'push' && github.ref == 'refs/heads/docker-container-setup'
