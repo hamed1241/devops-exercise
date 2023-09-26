@@ -61,4 +61,10 @@ jobs:
             git push origin docker-container-setup
           fi
           
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+   
+           NEW_VERSION="${VERSION%.*}.$((${VERSION##*.} + 1))"
+           TAG_NAME="v$NEW_VERSION"
+          fi
+
           gh release create "$TAG_NAME" --title "Release $TAG_NAME" --notes "Releasing $TAG_NAME" 
