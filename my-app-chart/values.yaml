@@ -1,0 +1,18 @@
+pythonApp:
+  replicas: 2
+  image: my-python-app:1.0.0
+  port: 8080
+
+nginxProxy:
+  replicas: 2
+  image: my-nginx-proxy:latest
+  port: 80
+
+ingress:
+  hostname: my-app.example.com
+  serviceName: my-nginx-service
+  servicePort: 80
+  tls:
+    enabled: true
+    hostname: my-app.example.com
+    secretName: my-tls-secret
