@@ -1,0 +1,80 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - docker-container-setup 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      - name: Install dependencies
+        run: |
+          pip install pipenv
+          pipenv install --deploy --dev
+
+      - name: Run tests
+        run: |
+          pipenv run pytest tests/unit
+
+      - name: Build and push Docker image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/docker-container-setup'
+        run: |
+          echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u hamed1241 --password-stdin
+          docker build -t ghcr.io/hamed1241/devops-exercise/bw-devops-exercise .
+          docker push ghcr.io/hamed1241/devops-exercise/bw-devops-exercise
+      
+          # Build and push the latest tag
+          docker build -t ghcr.io/hamed1241/devops-exercise/bw-devops-exercise:latest .
+          docker push ghcr.io/hamed1241/devops-exercise/bw-devops-exercise:latest
+
+      - name: Install github-changelog-generator
+        run: |
+          gem install github_changelog_generator
+        if: steps.version-check.outputs.version_changed == 'true'
+
+      - name: Generate release notes
+        run: |
+          github_changelog_generator
+        if: steps.version-check.outputs.version_changed == 'true'
+
+      - name: Determine version and create GitHub Release
+        if: steps.version-check.outputs.version_changed == 'true'
+        env:
+            GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          git config --global user.email "hamedsaghir9@gmail.com"
+          git config --global user.name "Hamed Saghir"
+  
+            # Determine the new version from version.json
+            VERSION=$(cat version.json | jq -r .baseVersion)
+            TAG_NAME="v$VERSION"
+  
+            # Reset the patch version to 0
+            if [[ $VERSION != *.*.* ]]; then
+              VERSION="${VERSION}.0"
+              echo "{\"baseVersion\": \"$VERSION\"}" > version.json
+              git add version.json
+              git commit -m "Reset patch version to 0"
+              git push origin docker-container-setup
+            fi
+  
+            # Build and push a new Docker image
+            docker build -t ghcr.io/hamed1241/devops-exercise/bw-devops-exercise:latest .
+            docker push ghcr.io/hamed1241/devops-exercise/bw-devops-exercise:latest
+  
+            # Create the GitHub Release
+            gh release create "$TAG_NAME" --title "Release $TAG_NAME" --notes "Releasing $TAG_NAME" --notes-file CHANGELOG.md
